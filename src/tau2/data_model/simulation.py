@@ -167,6 +167,20 @@ class RunConfig(BaseModel):
             default=False,
         ),
     ]
+    agent_api_base: Annotated[
+        Optional[str],
+        Field(
+            description="Base URL for the agent LLM API (e.g., http://localhost:8000/v1 for a local vLLM server). If set, the model name will be prefixed with 'openai/' automatically.",
+            default=None,
+        ),
+    ]
+    user_api_base: Annotated[
+        Optional[str],
+        Field(
+            description="Base URL for the user LLM API (e.g., http://localhost:8000/v1 for a local vLLM server). If set, the model name will be prefixed with 'openai/' automatically.",
+            default=None,
+        ),
+    ]
 
     def validate(self) -> None:
         """

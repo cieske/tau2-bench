@@ -141,6 +141,18 @@ def add_run_args(parser):
         default=False,
         help="Enforce communication protocol rules (e.g., no mixed messages with text and tool calls). Default is False.",
     )
+    parser.add_argument(
+        "--agent-api-base",
+        type=str,
+        default=None,
+        help="Base URL of the OpenAI-compatible API for the agent LLM (e.g., http://localhost:8000/v1 for a local vLLM server). When set, the model name is automatically prefixed with 'openai/' if not already.",
+    )
+    parser.add_argument(
+        "--user-api-base",
+        type=str,
+        default=None,
+        help="Base URL of the OpenAI-compatible API for the user LLM (e.g., http://localhost:8000/v1 for a local vLLM server). When set, the model name is automatically prefixed with 'openai/' if not already.",
+    )
 
 
 def main():
@@ -172,6 +184,8 @@ def main():
                 seed=args.seed,
                 log_level=args.log_level,
                 enforce_communication_protocol=args.enforce_communication_protocol,
+                agent_api_base=args.agent_api_base,
+                user_api_base=args.user_api_base,
             )
         )
     )

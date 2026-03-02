@@ -108,6 +108,26 @@ def make_run_name(config: RunConfig) -> str:
     return f"{get_now()}_{config.domain}_{agent_name}_{user_name}"
 
 
+def _apply_api_base(
+    model: str, llm_args: dict, api_base: Optional[str]
+) -> tuple[str, dict]:
+    """
+    Apply an OpenAI-compatible api_base to the model name and llm_args.
+
+    When api_base is set (e.g. for a local vLLM server), LiteLLM requires the
+    model to be prefixed with 'openai/' so it routes through the OpenAI-compatible
+    provider. An 'api_key' of 'EMPTY' is also injected if none is present, as
+    local vLLM servers do not require authentication.
+    """
+    updated_args = dict(llm_args)
+    updated_args["api_base"] = api_base
+    if not model.startswith("openai/"):
+        model = f"openai/{model}"
+    if "api_key" not in updated_args:
+        updated_args["api_key"] = "EMPTY"
+    return model, updated_args
+
+
 def run_domain(config: RunConfig) -> Results:
     """
     Run simulations for a domain
@@ -145,6 +165,21 @@ def run_domain(config: RunConfig) -> Results:
 
     num_trials = config.num_trials
     save_to = config.save_to
+
+    llm_agent = config.llm_agent
+    llm_args_agent = config.llm_args_agent
+    llm_user = config.llm_user
+    llm_args_user = config.llm_args_user
+
+    if config.agent_api_base is not None:
+        llm_agent, llm_args_agent = _apply_api_base(
+            llm_agent, llm_args_agent, config.agent_api_base
+        )
+    if config.user_api_base is not None:
+        llm_user, llm_args_user = _apply_api_base(
+            llm_user, llm_args_user, config.user_api_base
+        )
+
     if save_to is None:
         save_to = make_run_name(config)
     save_to = DATA_DIR / "simulations" / f"{save_to}.json"
@@ -153,10 +188,10 @@ def run_domain(config: RunConfig) -> Results:
         tasks=tasks,
         agent=config.agent,
         user=config.user,
-        llm_agent=config.llm_agent,
-        llm_args_agent=config.llm_args_agent,
-        llm_user=config.llm_user,
-        llm_args_user=config.llm_args_user,
+        llm_agent=llm_agent,
+        llm_args_agent=llm_args_agent,
+        llm_user=llm_user,
+        llm_args_user=llm_args_user,
         num_trials=num_trials,
         max_steps=config.max_steps,
         max_errors=config.max_errors,
