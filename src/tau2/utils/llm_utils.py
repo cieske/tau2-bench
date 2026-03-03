@@ -95,7 +95,10 @@ def get_response_cost(response: ModelResponse) -> float:
     try:
         cost = completion_cost(completion_response=response)
     except Exception as e:
-        logger.error(e)
+        if "isn't mapped yet" in str(e):
+            logger.debug(f"Cost not available for model '{response.model}': {e}")
+        else:
+            logger.error(e)
         return 0.0
     return cost
 
